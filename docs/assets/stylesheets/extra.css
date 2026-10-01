@@ -1,0 +1,15 @@
+/* Seiteninformationen unter dem Titel */
+.seiten-info {
+  font-size: 0.7rem;
+  color: var(--md-default-fg-color--light);
+  margin: -0.6rem 0 1.2rem;
+}
+.seiten-info span + span::before { content: " · "; }
+/* Screenshots begrenzen und abheben */
+.md-typeset img {
+  max-width: 100%;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 4px;
+}
+/* breite Tabellen scrollbar, Zellen oben ausrichten */
+.md-typeset table:not([class]) td { vertical-align: top; }

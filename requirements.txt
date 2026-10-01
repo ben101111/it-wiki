@@ -1,0 +1,5 @@
+# IT-Wissensdatenbank – Python-Abhängigkeiten
+# MkDocs bleibt bewusst auf 1.x: MkDocs 2.0 ist nicht kompatibel mit Material for MkDocs und Plugins.
+mkdocs==1.6.1
+mkdocs-material==9.7.7
+mkdocs-glightbox==0.5.2

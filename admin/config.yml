@@ -1,0 +1,1004 @@
+# Decap CMS – Konfiguration der Redaktionsoberfläche (/admin/)
+#
+# Platzhalter __WIKI_URL__, __GITEA_URL__, __GITEA_REPO__ und __OAUTH_CLIENT_ID__
+# werden beim Veröffentlichen vom Deploy-Dienst aus /opt/it-wiki/.env ersetzt.
+# Hier stehen bewusst keine Geheimnisse: Die Anmeldung läuft über OAuth mit PKCE,
+# es gibt kein Client-Secret.
+
+# Diese Datei ist vollständig ausgeschrieben (ohne YAML-Anker), damit Decap CMS sie sicher liest.
+
+backend:
+  name: gitea
+  repo: __GITEA_REPO__
+  branch: main
+  app_id: __OAUTH_CLIENT_ID__
+  base_url: __GITEA_URL__
+  api_root: __GITEA_URL__/api/v1
+  commit_messages:
+    create: 'Neu ({{collection}}): {{slug}} – {{author-login}}'
+    update: 'Geändert ({{collection}}): {{slug}} – {{author-login}}'
+    delete: 'Gelöscht ({{collection}}): {{slug}} – {{author-login}}'
+    uploadMedia: 'Bild hochgeladen: {{path}} – {{author-login}}'
+    deleteMedia: 'Bild gelöscht: {{path}} – {{author-login}}'
+locale: de
+site_url: __WIKI_URL__
+display_url: __WIKI_URL__
+logo_url: __WIKI_URL__/assets/favicon.svg
+media_folder: docs/assets/images/uploads
+public_folder: ../assets/images/uploads
+slug:
+  encoding: ascii
+  clean_accents: true
+  sanitize_replacement: '-'
+collections:
+- name: anleitung
+  label: Anleitungen
+  label_singular: Anleitung
+  description: Schritt-für-Schritt-Anleitungen (Installation, Konfiguration). Gespeichert unter docs/anleitungen/.
+  folder: docs/anleitungen
+  extension: md
+  format: frontmatter
+  create: true
+  delete: false
+  slug: '{{fields.dateiname}}'
+  filter:
+    field: vorlage
+    value: anleitung
+  summary: '{{title}}'
+  sortable_fields:
+  - title
+  - zuletzt_geprueft
+  preview_path: anleitungen/{{slug}}/
+  fields:
+  - label: Vorlage
+    name: vorlage
+    widget: hidden
+    default: anleitung
+  - label: Dateiname
+    name: dateiname
+    widget: hidden
+    default: ''
+    required: false
+  - label: Titel
+    name: title
+    widget: string
+    hint: Kurz und eindeutig, z. B. „DNS-Forwarder einrichten“. Daraus entsteht der Dateiname.
+  - label: Kategorie
+    name: kategorie
+    widget: relation
+    collection: kategorie
+    search_fields:
+    - title
+    value_field: title
+    display_fields:
+    - title
+    options_length: 200
+    required: true
+    hint: 'Fehlt eine Kategorie? Unter „Einstellungen: Kategorien“ neu anlegen.'
+  - label: Kurzbeschreibung
+    name: beschreibung
+    widget: text
+    required: false
+    hint: '1–2 Sätze: Was erreicht man mit dieser Anleitung?'
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: false
+    label: Voraussetzungen
+    name: voraussetzungen
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: true
+    label: Anleitung
+    name: body
+    hint: Die eigentlichen Schritte. Befehle über „Codeblock“ einfügen.
+  - label: Screenshots/Bilder
+    name: bilder
+    widget: list
+    required: false
+    collapsed: false
+    label_singular: Bild
+    summary: '{{fields.beschriftung}}'
+    hint: Bilder werden unter docs/assets/images/uploads/ gespeichert. Zugangsdaten, E-Mail-Adressen und Namen vorher schwärzen.
+    fields:
+    - label: Bild
+      name: bild
+      widget: image
+      choose_url: false
+    - label: Bildunterschrift
+      name: beschriftung
+      widget: string
+      required: false
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: false
+    label: Prüfung/Erfolgskontrolle
+    name: pruefung
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: false
+    label: Troubleshooting
+    name: troubleshooting
+  - label: Verwandte Anleitungen
+    name: verwandte_anleitungen
+    widget: relation
+    collection: anleitung
+    search_fields:
+    - title
+    value_field: '{{slug}}'
+    display_fields:
+    - title
+    multiple: true
+    required: false
+  - label: Verwandte Troubleshooting-Artikel
+    name: verwandte_troubleshooting
+    widget: relation
+    collection: troubleshooting
+    search_fields:
+    - title
+    value_field: '{{slug}}'
+    display_fields:
+    - title
+    multiple: true
+    required: false
+  - label: Weitere Links
+    name: weitere_links
+    widget: list
+    required: false
+    fields:
+    - label: Linktext
+      name: text
+      widget: string
+    - label: Adresse (https://…)
+      name: url
+      widget: string
+      pattern:
+      - ^https?://
+      - Bitte eine vollständige Adresse mit http:// oder https:// angeben
+  - label: Verantwortlich
+    name: verantwortlich
+    widget: string
+    required: false
+    hint: Rolle oder Team, z. B. „IT-Team Server“. Leer lassen = eigener Name.
+  - label: Zuletzt geprüft
+    name: zuletzt_geprueft
+    widget: datetime
+    format: YYYY-MM-DD
+    date_format: DD.MM.YYYY
+    time_format: false
+    picker_utc: true
+    required: false
+  - label: Tags
+    name: tags
+    widget: list
+    required: false
+    allow_add: true
+    hint: Schlagwörter, mit Komma trennen, z. B. DNS, Active Directory
+  - label: Archiviert
+    name: archiviert
+    widget: boolean
+    default: false
+    required: false
+    hint: Archivierte Beiträge bleiben lesbar, werden aber deutlich als veraltet gekennzeichnet.
+- name: troubleshooting
+  label: Troubleshooting
+  label_singular: Troubleshooting-Artikel
+  description: Fehlerbild → Ursache → Lösung. Gespeichert unter docs/troubleshooting/.
+  folder: docs/troubleshooting
+  extension: md
+  format: frontmatter
+  create: true
+  delete: false
+  slug: '{{fields.dateiname}}'
+  filter:
+    field: vorlage
+    value: troubleshooting
+  summary: '{{title}}'
+  sortable_fields:
+  - title
+  - zuletzt_geprueft
+  preview_path: troubleshooting/{{slug}}/
+  fields:
+  - label: Vorlage
+    name: vorlage
+    widget: hidden
+    default: troubleshooting
+  - label: Dateiname
+    name: dateiname
+    widget: hidden
+    default: ''
+    required: false
+  - label: Titel
+    name: title
+    widget: string
+    hint: 'Fehlermeldung oder Fehlercode in den Titel, z. B. „Outlook: Fehler 0x800CCC0E beim Senden“'
+  - label: Kategorie
+    name: kategorie
+    widget: relation
+    collection: kategorie
+    search_fields:
+    - title
+    value_field: title
+    display_fields:
+    - title
+    options_length: 200
+    required: false
+    hint: 'Fehlt eine Kategorie? Unter „Einstellungen: Kategorien“ neu anlegen.'
+  - label: Betroffene Systeme
+    name: betroffene_systeme
+    widget: list
+    required: false
+    hint: z. B. Windows 11, Outlook 365 – mit Komma trennen
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: true
+    label: Symptome
+    name: symptome
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: false
+    label: Ursache
+    name: ursache
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: true
+    label: Lösung
+    name: body
+  - label: Screenshots/Bilder
+    name: bilder
+    widget: list
+    required: false
+    collapsed: false
+    label_singular: Bild
+    summary: '{{fields.beschriftung}}'
+    hint: Bilder werden unter docs/assets/images/uploads/ gespeichert. Zugangsdaten, E-Mail-Adressen und Namen vorher schwärzen.
+    fields:
+    - label: Bild
+      name: bild
+      widget: image
+      choose_url: false
+    - label: Bildunterschrift
+      name: beschriftung
+      widget: string
+      required: false
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: false
+    label: Prüfschritte
+    name: pruefschritte
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: false
+    label: Eskalation
+    name: eskalation
+    hint: Wann und an wen eskalieren (Rolle, Hersteller-Support, Ticketnummer)?
+  - label: Verantwortlich
+    name: verantwortlich
+    widget: string
+    required: false
+    hint: Rolle oder Team, z. B. „IT-Team Server“. Leer lassen = eigener Name.
+  - label: Zuletzt geprüft
+    name: zuletzt_geprueft
+    widget: datetime
+    format: YYYY-MM-DD
+    date_format: DD.MM.YYYY
+    time_format: false
+    picker_utc: true
+    required: false
+  - label: Tags
+    name: tags
+    widget: list
+    required: false
+    allow_add: true
+    hint: Schlagwörter, mit Komma trennen, z. B. DNS, Active Directory
+  - label: Archiviert
+    name: archiviert
+    widget: boolean
+    default: false
+    required: false
+    hint: Archivierte Beiträge bleiben lesbar, werden aber deutlich als veraltet gekennzeichnet.
+- name: runbook
+  label: Runbooks
+  label_singular: Runbook
+  description: Abläufe für wiederkehrende oder kritische Betriebsaufgaben. Gespeichert unter docs/runbooks/.
+  folder: docs/runbooks
+  extension: md
+  format: frontmatter
+  create: true
+  delete: false
+  slug: '{{fields.dateiname}}'
+  filter:
+    field: vorlage
+    value: runbook
+  summary: '{{title}}'
+  sortable_fields:
+  - title
+  - zuletzt_geprueft
+  preview_path: runbooks/{{slug}}/
+  fields:
+  - label: Vorlage
+    name: vorlage
+    widget: hidden
+    default: runbook
+  - label: Dateiname
+    name: dateiname
+    widget: hidden
+    default: ''
+    required: false
+  - label: Titel
+    name: title
+    widget: string
+    hint: z. B. „Monatlicher Patchday Windows Server“
+  - label: Kategorie
+    name: kategorie
+    widget: relation
+    collection: kategorie
+    search_fields:
+    - title
+    value_field: title
+    display_fields:
+    - title
+    options_length: 200
+    required: false
+    hint: 'Fehlt eine Kategorie? Unter „Einstellungen: Kategorien“ neu anlegen.'
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: true
+    label: Zweck
+    name: zweck
+  - label: Risikostufe
+    name: risiko_stufe
+    widget: select
+    options:
+    - Niedrig
+    - Mittel
+    - Hoch
+    default: Mittel
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: false
+    label: Auswirkung/Risiko
+    name: risiko
+    hint: Ausfallzeit, betroffene Anwender, Abhängigkeiten
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: false
+    label: Voraussetzungen
+    name: voraussetzungen
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: true
+    label: Vorgehen
+    name: body
+  - label: Screenshots/Bilder
+    name: bilder
+    widget: list
+    required: false
+    collapsed: false
+    label_singular: Bild
+    summary: '{{fields.beschriftung}}'
+    hint: Bilder werden unter docs/assets/images/uploads/ gespeichert. Zugangsdaten, E-Mail-Adressen und Namen vorher schwärzen.
+    fields:
+    - label: Bild
+      name: bild
+      widget: image
+      choose_url: false
+    - label: Bildunterschrift
+      name: beschriftung
+      widget: string
+      required: false
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: false
+    label: Rollback
+    name: rollback
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: false
+    label: Prüfung
+    name: pruefung
+  - label: Verantwortlich
+    name: verantwortlich
+    widget: string
+    required: false
+    hint: Rolle oder Team, z. B. „IT-Team Server“. Leer lassen = eigener Name.
+  - label: Zuletzt geprüft
+    name: zuletzt_geprueft
+    widget: datetime
+    format: YYYY-MM-DD
+    date_format: DD.MM.YYYY
+    time_format: false
+    picker_utc: true
+    required: false
+  - label: Tags
+    name: tags
+    widget: list
+    required: false
+    allow_add: true
+    hint: Schlagwörter, mit Komma trennen, z. B. DNS, Active Directory
+  - label: Archiviert
+    name: archiviert
+    widget: boolean
+    default: false
+    required: false
+    hint: Archivierte Beiträge bleiben lesbar, werden aber deutlich als veraltet gekennzeichnet.
+- name: standard
+  label: Standards/Richtlinien
+  label_singular: Standard/Richtlinie
+  description: Verbindliche Festlegungen. Gespeichert unter docs/standards/.
+  folder: docs/standards
+  extension: md
+  format: frontmatter
+  create: true
+  delete: false
+  slug: '{{fields.dateiname}}'
+  filter:
+    field: vorlage
+    value: standard
+  summary: '{{title}}'
+  sortable_fields:
+  - title
+  - gueltig_ab
+  preview_path: standards/{{slug}}/
+  fields:
+  - label: Vorlage
+    name: vorlage
+    widget: hidden
+    default: standard
+  - label: Dateiname
+    name: dateiname
+    widget: hidden
+    default: ''
+    required: false
+  - label: Titel
+    name: title
+    widget: string
+  - label: Kategorie
+    name: kategorie
+    widget: relation
+    collection: kategorie
+    search_fields:
+    - title
+    value_field: title
+    display_fields:
+    - title
+    options_length: 200
+    required: false
+    hint: 'Fehlt eine Kategorie? Unter „Einstellungen: Kategorien“ neu anlegen.'
+  - label: Geltungsbereich
+    name: geltungsbereich
+    widget: string
+    hint: Für welche Systeme, Kunden oder Personen gilt der Standard?
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: true
+    label: Ziel
+    name: ziel
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: true
+    label: Inhalt
+    name: body
+  - label: Screenshots/Bilder
+    name: bilder
+    widget: list
+    required: false
+    collapsed: false
+    label_singular: Bild
+    summary: '{{fields.beschriftung}}'
+    hint: Bilder werden unter docs/assets/images/uploads/ gespeichert. Zugangsdaten, E-Mail-Adressen und Namen vorher schwärzen.
+    fields:
+    - label: Bild
+      name: bild
+      widget: image
+      choose_url: false
+    - label: Bildunterschrift
+      name: beschriftung
+      widget: string
+      required: false
+  - label: Verantwortlich
+    name: verantwortlich
+    widget: string
+    required: false
+    hint: Rolle oder Team, z. B. „IT-Team Server“. Leer lassen = eigener Name.
+  - label: Gültig ab
+    name: gueltig_ab
+    widget: datetime
+    format: YYYY-MM-DD
+    date_format: DD.MM.YYYY
+    time_format: false
+    picker_utc: true
+    required: false
+  - label: Zuletzt geprüft
+    name: zuletzt_geprueft
+    widget: datetime
+    format: YYYY-MM-DD
+    date_format: DD.MM.YYYY
+    time_format: false
+    picker_utc: true
+    required: false
+  - label: Tags
+    name: tags
+    widget: list
+    required: false
+    allow_add: true
+    hint: Schlagwörter, mit Komma trennen, z. B. DNS, Active Directory
+  - label: Archiviert
+    name: archiviert
+    widget: boolean
+    default: false
+    required: false
+    hint: Archivierte Beiträge bleiben lesbar, werden aber deutlich als veraltet gekennzeichnet.
+- name: beitrag
+  label: Weitere Inhaltstypen
+  label_singular: Beitrag
+  description: 'Beiträge eigener Inhaltstypen (z. B. Checkliste, Kundendokumentation). Den Inhaltstyp zuerst unter „Einstellungen: Inhaltstypen“ anlegen. Gespeichert unter docs/inhalte/.'
+  folder: docs/inhalte
+  extension: md
+  format: frontmatter
+  create: true
+  delete: false
+  slug: '{{fields.dateiname}}'
+  filter:
+    field: vorlage
+    value: beitrag
+  summary: '{{title}} ({{inhaltstyp}})'
+  sortable_fields:
+  - title
+  - inhaltstyp
+  - zuletzt_geprueft
+  view_groups:
+  - label: Inhaltstyp
+    field: inhaltstyp
+  preview_path: inhalte/{{slug}}/
+  fields:
+  - label: Vorlage
+    name: vorlage
+    widget: hidden
+    default: beitrag
+  - label: Dateiname
+    name: dateiname
+    widget: hidden
+    default: ''
+    required: false
+  - label: Inhaltstyp
+    name: inhaltstyp
+    widget: relation
+    collection: inhaltstyp
+    search_fields:
+    - title
+    value_field: title
+    display_fields:
+    - title
+    options_length: 200
+    hint: 'Fehlt ein Inhaltstyp? Unter „Einstellungen: Inhaltstypen“ neu anlegen.'
+  - label: Titel
+    name: title
+    widget: string
+  - label: Kategorie
+    name: kategorie
+    widget: relation
+    collection: kategorie
+    search_fields:
+    - title
+    value_field: title
+    display_fields:
+    - title
+    options_length: 200
+    required: false
+    hint: 'Fehlt eine Kategorie? Unter „Einstellungen: Kategorien“ neu anlegen.'
+  - label: Kurzbeschreibung
+    name: beschreibung
+    widget: text
+    required: false
+  - label: Steckbrief-Angaben
+    name: angaben
+    widget: list
+    required: false
+    label_singular: Angabe
+    summary: '{{fields.bezeichnung}}: {{fields.wert}}'
+    hint: Optionale Eckdaten, z. B. Kunde, System, Version, Intervall
+    fields:
+    - label: Bezeichnung
+      name: bezeichnung
+      widget: string
+    - label: Wert
+      name: wert
+      widget: string
+  - widget: markdown
+    modes:
+    - rich_text
+    buttons:
+    - bold
+    - italic
+    - code
+    - link
+    - heading-two
+    - heading-three
+    - quote
+    - bulleted-list
+    - numbered-list
+    editor_components:
+    - image
+    - code-block
+    required: true
+    label: Inhalt
+    name: body
+    hint: Abschnitte über die Überschriften-Schaltfläche (H2/H3) gliedern.
+  - label: Screenshots/Bilder
+    name: bilder
+    widget: list
+    required: false
+    collapsed: false
+    label_singular: Bild
+    summary: '{{fields.beschriftung}}'
+    hint: Bilder werden unter docs/assets/images/uploads/ gespeichert. Zugangsdaten, E-Mail-Adressen und Namen vorher schwärzen.
+    fields:
+    - label: Bild
+      name: bild
+      widget: image
+      choose_url: false
+    - label: Bildunterschrift
+      name: beschriftung
+      widget: string
+      required: false
+  - label: Verwandte Anleitungen
+    name: verwandte_anleitungen
+    widget: relation
+    collection: anleitung
+    search_fields:
+    - title
+    value_field: '{{slug}}'
+    display_fields:
+    - title
+    multiple: true
+    required: false
+  - label: Verwandte Troubleshooting-Artikel
+    name: verwandte_troubleshooting
+    widget: relation
+    collection: troubleshooting
+    search_fields:
+    - title
+    value_field: '{{slug}}'
+    display_fields:
+    - title
+    multiple: true
+    required: false
+  - label: Weitere Links
+    name: weitere_links
+    widget: list
+    required: false
+    fields:
+    - label: Linktext
+      name: text
+      widget: string
+    - label: Adresse (https://…)
+      name: url
+      widget: string
+      pattern:
+      - ^https?://
+      - Bitte eine vollständige Adresse mit http:// oder https:// angeben
+  - label: Verantwortlich
+    name: verantwortlich
+    widget: string
+    required: false
+    hint: Rolle oder Team, z. B. „IT-Team Server“. Leer lassen = eigener Name.
+  - label: Zuletzt geprüft
+    name: zuletzt_geprueft
+    widget: datetime
+    format: YYYY-MM-DD
+    date_format: DD.MM.YYYY
+    time_format: false
+    picker_utc: true
+    required: false
+  - label: Tags
+    name: tags
+    widget: list
+    required: false
+    allow_add: true
+    hint: Schlagwörter, mit Komma trennen, z. B. DNS, Active Directory
+  - label: Archiviert
+    name: archiviert
+    widget: boolean
+    default: false
+    required: false
+    hint: Archivierte Beiträge bleiben lesbar, werden aber deutlich als veraltet gekennzeichnet.
+- name: kategorie
+  label: 'Einstellungen: Kategorien'
+  label_singular: Kategorie
+  description: Kategorien für alle Beiträge. Anleitungen und eigene Inhaltstypen werden in der Navigation danach gruppiert. Änderungen erscheinen nach dem nächsten Build.
+  folder: cms/kategorien
+  extension: yml
+  format: yml
+  create: true
+  delete: true
+  slug: '{{fields.dateiname}}'
+  summary: '{{title}}'
+  sortable_fields:
+  - title
+  - reihenfolge
+  fields:
+  - label: Dateiname
+    name: dateiname
+    widget: hidden
+    default: ''
+    required: false
+  - label: Name
+    name: title
+    widget: string
+    hint: So erscheint die Kategorie in Auswahllisten und in der Navigation.
+  - label: Beschreibung
+    name: beschreibung
+    widget: text
+    required: false
+  - label: Reihenfolge
+    name: reihenfolge
+    widget: number
+    value_type: int
+    default: 100
+    required: false
+    hint: Kleinere Zahl = weiter oben in der Navigation
+- name: inhaltstyp
+  label: 'Einstellungen: Inhaltstypen'
+  label_singular: Inhaltstyp
+  description: Eigene Inhaltstypen. Jeder Typ erhält einen eigenen Bereich in der Navigation, sobald es den ersten Beitrag gibt. Beiträge legen Sie unter „Weitere Inhaltstypen“ an.
+  folder: cms/inhaltstypen
+  extension: yml
+  format: yml
+  create: true
+  delete: true
+  slug: '{{fields.dateiname}}'
+  summary: '{{title}} – Navigation: {{mehrzahl}}'
+  fields:
+  - label: Dateiname
+    name: dateiname
+    widget: hidden
+    default: ''
+    required: false
+  - label: Name (Einzahl)
+    name: title
+    widget: string
+    hint: z. B. „Checkliste“
+  - label: Name in der Navigation (Mehrzahl)
+    name: mehrzahl
+    widget: string
+    hint: z. B. „Checklisten“
+  - label: Beschreibung
+    name: beschreibung
+    widget: text
+    required: false
+    hint: Erscheint oben auf der Übersichtsseite des Bereichs.
+  - label: Position in der Navigation
+    name: position
+    widget: select
+    options:
+    - Nach den Anleitungen
+    - Am Ende
+    default: Nach den Anleitungen
+  - label: Reihenfolge
+    name: reihenfolge
+    widget: number
+    value_type: int
+    default: 100
+    required: false
+    hint: 'Bei mehreren Inhaltstypen: kleinere Zahl = weiter oben'

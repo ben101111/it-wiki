@@ -1,0 +1,66 @@
+# Gitea – interner Git-Server für die IT-Wissensdatenbank
+# Pfad auf dem Server: /opt/gitea   ·   Werte in /opt/gitea/.env
+services:
+  gitea:
+    image: gitea/gitea:1.27.3-rootless
+    container_name: gitea
+    restart: unless-stopped
+    user: "1000:1000"
+    env_file: .env
+    environment:
+      # Server
+      GITEA__server__ROOT_URL: "${GITEA_URL}/"
+      GITEA__server__HTTP_PORT: "3000"
+      GITEA__server__DISABLE_SSH: "true"
+      GITEA__server__START_SSH_SERVER: "false"
+      GITEA__server__LFS_START_SERVER: "false"
+      # Datenbank: SQLite (Begründung siehe README)
+      GITEA__database__DB_TYPE: "sqlite3"
+      # Keine öffentliche Registrierung, nichts ohne Anmeldung sichtbar
+      GITEA__service__DISABLE_REGISTRATION: "true"
+      GITEA__service__REQUIRE_SIGNIN_VIEW: "true"
+      GITEA__service__DEFAULT_KEEP_EMAIL_PRIVATE: "true"
+      GITEA__service__DEFAULT_ALLOW_CREATE_ORGANIZATION: "false"
+      GITEA__service__ENABLE_NOTIFY_MAIL: "false"
+      GITEA__openid__ENABLE_OPENID_SIGNIN: "false"
+      GITEA__openid__ENABLE_OPENID_SIGNUP: "false"
+      GITEA__repository__DEFAULT_BRANCH: "main"
+      GITEA__repository__DEFAULT_PRIVATE: "private"
+      GITEA__repository__FORCE_PRIVATE: "true"
+      GITEA__repository__DISABLE_DOWNLOAD_SOURCE_ARCHIVES: "false"
+      GITEA__actions__ENABLED: "false"
+      GITEA__mailer__ENABLED: "false"
+      GITEA__security__INSTALL_LOCK: "true"
+      GITEA__security__LOGIN_REMEMBER_DAYS: "14"
+      GITEA__security__PASSWORD_COMPLEXITY: "lower,upper,digit"
+      GITEA__security__MIN_PASSWORD_LENGTH: "12"
+      # OAuth2 für Decap CMS (PKCE)
+      GITEA__oauth2__ENABLED: "true"
+      # CORS: Decap CMS unter WIKI_URL darf die Gitea-API im Browser aufrufen
+      GITEA__cors__ENABLED: "true"
+      GITEA__cors__ALLOW_DOMAIN: "${WIKI_URL}"
+      GITEA__cors__METHODS: "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS"
+      GITEA__cors__HEADERS: "Content-Type,User-Agent,Authorization"
+      GITEA__cors__MAX_AGE: "10m"
+      GITEA__log__LEVEL: "Info"
+      GITEA__session__COOKIE_SECURE: "false"
+    volumes:
+      - ./data:/var/lib/gitea
+      - ./config:/etc/gitea
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - gitea-net
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+networks:
+  gitea-net:
+    name: gitea-net

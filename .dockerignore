@@ -1,0 +1,9 @@
+.venv
+site
+.git
+link-pruefung
+migration-output
+*.zip
+docker/auth
+.env
+gitea

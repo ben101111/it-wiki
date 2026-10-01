@@ -1,0 +1,131 @@
+# MkDocs-Konfiguration der IT-Wissensdatenbank (Vorlage)
+# Doku: https://squidfunk.github.io/mkdocs-material/
+site_name: IT-Wissensdatenbank
+site_description: Interne Wissensdatenbank des IT-Teams
+# site_url bei internem Hosting setzen, z. B. https://wiki.intern.example/
+# site_url: https://wiki.intern.example/
+copyright: Nur für den internen Gebrauch
+docs_dir: docs
+use_directory_urls: true
+
+theme:
+  name: material
+  custom_dir: overrides
+  language: de
+  font: false            # keine Google Fonts laden (DSGVO, Offline-Betrieb)
+  icon:
+    logo: material/book-open-page-variant
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Dunkles Design aktivieren
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Helles Design aktivieren
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.sections
+    - navigation.indexes
+    - navigation.path
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
+
+plugins:
+  - search:
+      lang:
+        - de
+        - en
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - tags
+  - glightbox:
+      zoomable: true
+      draggable: false
+      skip_classes:
+        - no-lightbox
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra:
+  generator: false
+  # Schnellzugriff oben links (Redaktion, Gitea). Werte kommen beim Build aus /opt/it-wiki/.env;
+  # ohne GITEA_URL (z. B. reiner Wiki-Container ohne CMS) werden die Knöpfe nicht angezeigt.
+  cms_links:
+    git_url: !ENV [GITEA_URL, ""]
+    git_repo: !ENV [GITEA_REPO, ""]
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      permalink_title: Link auf diesen Abschnitt
+      toc_depth: 3
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.caret
+  - pymdownx.tilde
+  - pymdownx.smartsymbols
+
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+  links:
+    not_found: warn
+    anchors: warn
+    absolute_links: warn
+    unrecognized_links: warn
+
+nav:
+  - Startseite: index.md
+  - Anleitungen:
+    - anleitungen/index.md
+  - Troubleshooting:
+    - troubleshooting/index.md
+  - Runbooks:
+    - runbooks/index.md
+  - Standards:
+    - standards/index.md
+    - standards/dokumentationsrichtlinie.md
+  - Tags: tags.md
+
+# Browser-Redaktion: neue Seiten automatisch in die Navigation, Formular-Seiten rendern
+hooks:
+  - hooks/wiki_cms.py

@@ -1,0 +1,60 @@
+# IT-Wissensdatenbank: Auslieferung (nginx) + Deploy-Dienst (Build aus Gitea)
+# Werte und Zugangsdaten stehen in .env (nicht im Git-Repository).
+services:
+  it-wiki:
+    image: nginx:stable-alpine
+    container_name: it-wiki
+    restart: unless-stopped
+    ports:
+      - "${WIKI_PORT:-8080}:80"
+    environment:
+      AUTH_BASIC: "${AUTH_BASIC:-off}"     # "off" = Lesen ohne Anmeldung
+    volumes:
+      - ./docker/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./docker/auth:/etc/nginx/auth:ro
+      - wiki-site:/srv/site:ro
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /etc/nginx/conf.d
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 5s
+    depends_on:
+      - deployer
+
+  deployer:
+    build:
+      context: .
+      dockerfile: docker/deployer/Dockerfile
+    image: it-wiki-deployer:latest
+    container_name: it-wiki-deployer
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      GITEA_INTERNAL_URL: "http://gitea:3000"
+    volumes:
+      - wiki-site:/srv/site
+      - wiki-work:/work
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - default
+      - gitea-net
+
+volumes:
+  wiki-site:
+  wiki-work:
+
+networks:
+  gitea-net:
+    external: true

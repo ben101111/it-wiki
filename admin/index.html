@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Redaktion – IT-Wissensdatenbank</title>
+  <link rel="icon" href="../assets/favicon.svg">
+  <script>
+    /*
+     * PKCE benötigt crypto.subtle.digest('SHA-256') und crypto.randomUUID. Browser stellen beides nur in
+     * "sicheren Kontexten" (HTTPS oder localhost) bereit. Für den Betrieb über
+     * http://SERVER-IP:8080 wird hier eine kleine SHA-256-Implementierung nachgerüstet.
+     * Mit HTTPS wird automatisch die Browser-Funktion verwendet.
+     */
+    (function () {
+      /* crypto.randomUUID ist ebenfalls nur in sicheren Kontexten vorhanden */
+      if (window.crypto && !window.crypto.randomUUID && window.crypto.getRandomValues) {
+        window.crypto.randomUUID = function () {
+          var b = window.crypto.getRandomValues(new Uint8Array(16)), h = [];
+          b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+          for (var i = 0; i < 16; i++) h.push((b[i] + 0x100).toString(16).substring(1));
+          return h.slice(0, 4).join('') + '-' + h.slice(4, 6).join('') + '-' + h.slice(6, 8).join('') + '-' + h.slice(8, 10).join('') + '-' + h.slice(10).join('');
+        };
+      }
+      if (window.crypto && window.crypto.subtle && window.crypto.subtle.digest) return;
+      var K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+        0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+        0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+        0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+        0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+        0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+        0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+        0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+      function sha256(bytes) {
+        var l = bytes.length, bitLenHi = Math.floor(l / 0x20000000), bitLenLo = (l * 8) >>> 0;
+        var n = ((l + 9 + 63) >> 6) << 6, m = new Uint8Array(n);
+        m.set(bytes); m[l] = 0x80;
+        var dv = new DataView(m.buffer);
+        dv.setUint32(n - 8, bitLenHi); dv.setUint32(n - 4, bitLenLo);
+        var H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+        var W = new Uint32Array(64);
+        function r(x, k) { return (x >>> k) | (x << (32 - k)); }
+        for (var o = 0; o < n; o += 64) {
+          for (var t = 0; t < 16; t++) W[t] = dv.getUint32(o + t * 4);
+          for (t = 16; t < 64; t++) {
+            var s0 = r(W[t-15], 7) ^ r(W[t-15], 18) ^ (W[t-15] >>> 3);
+            var s1 = r(W[t-2], 17) ^ r(W[t-2], 19) ^ (W[t-2] >>> 10);
+            W[t] = (W[t-16] + s0 + W[t-7] + s1) >>> 0;
+          }
+          var a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+          for (t = 0; t < 64; t++) {
+            var S1 = r(e, 6) ^ r(e, 11) ^ r(e, 25), ch = (e & f) ^ (~e & g);
+            var T1 = (h + S1 + ch + K[t] + W[t]) >>> 0;
+            var S0 = r(a, 2) ^ r(a, 13) ^ r(a, 22), mj = (a & b) ^ (a & c) ^ (b & c);
+            var T2 = (S0 + mj) >>> 0;
+            h = g; g = f; f = e; e = (d + T1) >>> 0; d = c; c = b; b = a; a = (T1 + T2) >>> 0;
+          }
+          H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0; H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0;
+          H[4] = (H[4] + e) >>> 0; H[5] = (H[5] + f) >>> 0; H[6] = (H[6] + g) >>> 0; H[7] = (H[7] + h) >>> 0;
+        }
+        var out = new ArrayBuffer(32), ov = new DataView(out);
+        for (var i = 0; i < 8; i++) ov.setUint32(i * 4, H[i]);
+        return out;
+      }
+      var subtle = {
+        digest: function (alg, data) {
+          var name = (typeof alg === 'string' ? alg : alg.name || '').toUpperCase();
+          if (name !== 'SHA-256') return Promise.reject(new Error('Nur SHA-256 verfügbar'));
+          var bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+          return Promise.resolve(sha256(bytes));
+        }
+      };
+      try { Object.defineProperty(window.crypto, 'subtle', { value: subtle, configurable: true }); }
+      catch (e) { window.crypto.subtle = subtle; }
+      window.__sha256Polyfill = true;
+    })();
+  </script>
+</head>
+<body>
+  <script src="decap-cms.js"></script>
+  <script>
+    /* Dateinamen: Kleinbuchstaben, Bindestriche, Umlaute als ae/oe/ue/ss */
+    function wikiSlug(text) {
+      return String(text || '')
+        .toLowerCase()
+        .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+        .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .substring(0, 80)
+        .replace(/-+$/g, '') || 'neuer-beitrag';
+    }
+
+    var INHALT = ['anleitung', 'troubleshooting', 'runbook', 'standard', 'beitrag'];
+    CMS.registerEventListener({
+      name: 'preSave',
+      handler: function (args) {
+        var entry = args.entry, data = entry.get('data');
+        if (!data.get('dateiname')) data = data.set('dateiname', wikiSlug(data.get('title')));
+        if (INHALT.indexOf(entry.get('collection')) === -1) return data;  /* Kategorien/Inhaltstypen: nur Dateiname */
+        if (!data.get('verantwortlich') && args.author) data = data.set('verantwortlich', args.author.name || args.author.login || '');
+        if (!data.get('zuletzt_geprueft')) data = data.set('zuletzt_geprueft', new Date().toISOString().substring(0, 10));
+        return data;
+      }
+    });
+
+    /* ---------- Vorschau ---------- */
+    var h = window.h;
+    function sec(props, title, field) {
+      var v = props.entry.getIn(['data', field]);
+      if (!v || (v.size === 0)) return null;
+      return h('section', {}, h('h2', {}, title), props.widgetFor(field));
+    }
+    function steckbrief(rows) {
+      rows = rows.filter(function (r) { return r[1]; });
+      if (!rows.length) return null;
+      return h('div', { className: 'admonition info' },
+        h('p', { className: 'admonition-title' }, 'Steckbrief'),
+        h('ul', {}, rows.map(function (r, i) {
+          return h('li', { key: i }, h('strong', {}, r[0] + ':'), ' ' + String(r[1]));
+        })));
+    }
+    function bilder(props) {
+      var data = props.entry.getIn(['data', 'bilder']);
+      if (!data || !data.size) return null;
+      var list = props.widgetsFor('bilder');
+      var items = [];
+      (list || []).forEach(function (item, i) {
+        if (!item || !item.getIn) return;
+        var src = item.getIn(['data', 'bild']);
+        if (!src) return;
+        var asset = props.getAsset ? props.getAsset(src) : src;
+        items.push(h('figure', { key: i }, h('img', { src: asset ? asset.toString() : src, alt: item.getIn(['data', 'beschriftung']) || '' }),
+          h('figcaption', {}, 'Abbildung ' + (items.length + 1) + (item.getIn(['data', 'beschriftung']) ? ': ' + item.getIn(['data', 'beschriftung']) : ''))));
+      });
+      return items.length ? h('section', {}, h('h2', {}, 'Screenshots'), items) : null;
+    }
+    function d(props, f) {
+      var v = props.entry.getIn(['data', f]);
+      if (!v) return '';
+      if (v instanceof Date) v = v.toISOString();
+      v = String(v).substring(0, 10).split('-');
+      return v.length === 3 ? v[2] + '.' + v[1] + '.' + v[0] : v.join('-');
+    }
+    function list(props, f) {
+      var v = props.entry.getIn(['data', f]);
+      return v && v.toJS ? v.toJS().join(', ') : (v || '');
+    }
+    function head(props) {
+      var data = props.entry.get('data');
+      return [
+        h('h1', { key: 'h1' }, data.get('title') || 'Ohne Titel'),
+        data.get('archiviert') ? h('div', { key: 'arch', className: 'admonition warning' }, h('p', { className: 'admonition-title' }, 'Archiviert')) : null,
+        data.get('beschreibung') ? h('p', { key: 'desc' }, data.get('beschreibung')) : null
+      ];
+    }
+    var templates = {
+      anleitung: function (p) {
+        return [head(p), steckbrief([['Kategorie', p.entry.getIn(['data', 'kategorie'])], ['Verantwortlich', p.entry.getIn(['data', 'verantwortlich'])], ['Zuletzt geprüft', d(p, 'zuletzt_geprueft')]]),
+          sec(p, 'Voraussetzungen', 'voraussetzungen'), sec(p, 'Anleitung', 'body'), bilder(p),
+          sec(p, 'Prüfung / Erfolgskontrolle', 'pruefung'), sec(p, 'Troubleshooting', 'troubleshooting')];
+      },
+      troubleshooting: function (p) {
+        return [head(p), steckbrief([['Kategorie', p.entry.getIn(['data', 'kategorie'])], ['Betroffene Systeme', list(p, 'betroffene_systeme')], ['Verantwortlich', p.entry.getIn(['data', 'verantwortlich'])], ['Zuletzt geprüft', d(p, 'zuletzt_geprueft')]]),
+          sec(p, 'Symptome', 'symptome'), sec(p, 'Ursache', 'ursache'), sec(p, 'Lösung', 'body'), bilder(p),
+          sec(p, 'Prüfschritte', 'pruefschritte'), sec(p, 'Eskalation', 'eskalation')];
+      },
+      runbook: function (p) {
+        return [head(p), steckbrief([['Kategorie', p.entry.getIn(['data', 'kategorie'])], ['Risikostufe', p.entry.getIn(['data', 'risiko_stufe'])], ['Verantwortlich', p.entry.getIn(['data', 'verantwortlich'])], ['Zuletzt geprüft', d(p, 'zuletzt_geprueft')]]),
+          sec(p, 'Zweck', 'zweck'), sec(p, 'Auswirkung / Risiko', 'risiko'), sec(p, 'Voraussetzungen', 'voraussetzungen'),
+          sec(p, 'Vorgehen', 'body'), bilder(p), sec(p, 'Rollback', 'rollback'), sec(p, 'Prüfung', 'pruefung')];
+      },
+      beitrag: function (p) {
+        var rows = [['Inhaltstyp', p.entry.getIn(['data', 'inhaltstyp'])], ['Kategorie', p.entry.getIn(['data', 'kategorie'])]];
+        var ang = p.entry.getIn(['data', 'angaben']);
+        if (ang && ang.forEach) ang.forEach(function (a) { if (a && a.get) rows.push([a.get('bezeichnung'), a.get('wert')]); });
+        rows.push(['Verantwortlich', p.entry.getIn(['data', 'verantwortlich'])], ['Zuletzt geprüft', d(p, 'zuletzt_geprueft')]);
+        return [head(p), steckbrief(rows), h('section', { key: 'body' }, p.widgetFor('body')), bilder(p)];
+      },
+      standard: function (p) {
+        return [head(p), steckbrief([['Kategorie', p.entry.getIn(['data', 'kategorie'])], ['Geltungsbereich', p.entry.getIn(['data', 'geltungsbereich'])], ['Verantwortlich', p.entry.getIn(['data', 'verantwortlich'])], ['Gültig ab', d(p, 'gueltig_ab')], ['Zuletzt geprüft', d(p, 'zuletzt_geprueft')]]),
+          sec(p, 'Ziel', 'ziel'), sec(p, 'Inhalt', 'body'), bilder(p)];
+      }
+    };
+    Object.keys(templates).forEach(function (name) {
+      CMS.registerPreviewTemplate(name, createClass({
+        render: function () { return h('article', { className: 'md-typeset' }, templates[name](this.props)); }
+      }));
+    });
+    CMS.registerPreviewStyle('preview.css');
+  </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+# Build und lokale Umgebungen
+.venv/
+site/
+__pycache__/
+*.pyc
+*.log
+*.tmp
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Geheimnisse – niemals committen
+.env
+.env.*
+!.env.example
+docker/auth/
+*.htpasswd
+.htpasswd
+secrets/
+*.key
+*.pem
+*.pfx
+
+# Betrieb
+*.bak-*
+backups/
+link-pruefung/
+migration-output/
+migration-protokoll-*

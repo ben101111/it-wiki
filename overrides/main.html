@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+  {% set m = page.meta or {} %}
+  {% if m.geaendert or m.inhaltstyp %}
+    {% set info %}<p class="seiten-info">{% if m.inhaltstyp %}<span>Typ: {{ m.inhaltstyp }}</span>{% endif %}{% if m.erstellt %}<span>Erstellt: {{ m.erstellt }}</span>{% endif %}{% if m.geaendert %}<span>Geändert: {{ m.geaendert }}</span>{% endif %}{% if m.review and m.review != "P3" %}<span>Review: {{ m.review }}</span>{% endif %}</p>{% endset %}
+    {{ super() | replace("</h1>", "</h1>" ~ info, 1) }}
+  {% else %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+  {{ super() }}
+  {% if config.extra.cms_links and config.extra.cms_links.git_url %}
+  <style>
+    .wiki-schnell{display:flex;gap:.4rem;align-items:center;margin:0 .4rem 0 .2rem;flex-shrink:0}
+    .wiki-schnell a{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .6rem;border-radius:.2rem;
+      font-size:.65rem;font-weight:700;line-height:1;color:var(--md-primary-bg-color);
+      border:1px solid color-mix(in srgb,var(--md-primary-bg-color) 45%,transparent);white-space:nowrap}
+    .wiki-schnell a:hover,.wiki-schnell a:focus{background:color-mix(in srgb,var(--md-primary-bg-color) 15%,transparent);color:var(--md-primary-bg-color)}
+    .wiki-schnell svg{width:.9rem;height:.9rem;fill:currentColor}
+    @media screen and (max-width:44.9375em){.wiki-schnell span{display:none}.wiki-schnell a{padding:.3rem}}
+    @media print{.wiki-schnell{display:none}}
+  </style>
+  {% endif %}
+{% endblock %}
+
+{% block header %}
+  {% set cl = config.extra.cms_links or {} %}
+  {% if cl.git_url %}
+    {% set git = cl.git_url.rstrip("/") ~ ("/" ~ cl.git_repo if cl.git_repo else "") %}
+    {% set knoepfe %}<div class="wiki-schnell"><a href="{{ base_url }}/admin/" title="Redaktion öffnen (Beiträge schreiben und bearbeiten)">{% include ".icons/material/pencil.svg" %}<span>Redaktion</span></a><a href="{{ git }}" target="_blank" rel="noopener" title="Git-Repository in Gitea öffnen (Verlauf, Dateien)">{% include ".icons/material/git.svg" %}<span>Git</span></a></div>{% endset %}
+    {{ super() | replace('<div class="md-header__title"', knoepfe ~ '<div class="md-header__title"', 1) }}
+  {% else %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
