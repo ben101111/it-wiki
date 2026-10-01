@@ -221,7 +221,7 @@ Sicherheitslücken bitte nicht als öffentliches Issue melden, siehe [SECURITY.m
 | Dokument | Inhalt |
 |---|---|
 | [INSTALLATION-KURZ.md](INSTALLATION-KURZ.md) | Installation in 5 Schritten, Alltag, typische Fehler |
-| [Kurzanleitung Installation](https://www.youtube.com/watch?v=Qlz0Q0Ejy9o) | Installation ohne Domain |
+| [ (VIDEO) Kurzanleitung Installation](https://www.youtube.com/watch?v=Qlz0Q0Ejy9o) | Installation ohne Domain |
 | [HANDBUCH.md](HANDBUCH.md) | Architektur, Backup und Restore, Benutzerverwaltung, Redaktion, Fehlerdiagnose, Updates |
 | [CHANGELOG.md](CHANGELOG.md) | Änderungen je Version |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Mitwirken |
